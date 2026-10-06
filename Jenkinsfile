@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven 3.9'
-        jdk   'JDK 17'
-    }
-
     environment {
         SONAR_TOKEN   = credentials('sonarcloud-token')
         SLACK_WEBHOOK = credentials('slack-webhook')
