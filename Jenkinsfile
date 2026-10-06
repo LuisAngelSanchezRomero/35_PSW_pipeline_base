@@ -7,8 +7,9 @@ pipeline {
     }
 
     environment {
-        SONAR_TOKEN  = credentials('sonarcloud-token')
-        SLACK_CHANNEL = '#psw-pipeline'
+        SONAR_TOKEN   = credentials('sonarcloud-token')
+        SLACK_WEBHOOK = credentials('slack-webhook')
+        SLACK_CHANNEL = '#pipeline-notificaciones'
     }
 
     stages {
@@ -114,40 +115,25 @@ pipeline {
     // ─────────────────────────────────────────────────
     post {
         success {
-            slackSend(
-                channel: env.SLACK_CHANNEL,
-                color: 'good',
-                message: """
-✅ *Pipeline exitoso* — ${env.JOB_NAME} #${env.BUILD_NUMBER}
-• Build: PASSED
-• Tests: PASSED
-• SonarQube: analizado
-• JMeter: ejecutado
-• Ver detalles: ${env.BUILD_URL}
-                """.stripIndent()
-            )
+            sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"✅ *Pipeline exitoso* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Build: PASSED\\n• Tests: PASSED\\n• SonarCloud: analizado\\n• Ver: ${env.BUILD_URL}"}' \
+                ${SLACK_WEBHOOK}
+            """
         }
         failure {
-            slackSend(
-                channel: env.SLACK_CHANNEL,
-                color: 'danger',
-                message: """
-❌ *Pipeline fallido* — ${env.JOB_NAME} #${env.BUILD_NUMBER}
-• Etapa fallida: ${currentBuild.currentResult}
-• Ver detalles: ${env.BUILD_URL}
-                """.stripIndent()
-            )
+            sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"❌ *Pipeline fallido* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Ver: ${env.BUILD_URL}"}' \
+                ${SLACK_WEBHOOK}
+            """
         }
         unstable {
-            slackSend(
-                channel: env.SLACK_CHANNEL,
-                color: 'warning',
-                message: """
-⚠️ *Pipeline inestable* — ${env.JOB_NAME} #${env.BUILD_NUMBER}
-• Algunos tests fallaron o Quality Gate no pasó
-• Ver detalles: ${env.BUILD_URL}
-                """.stripIndent()
-            )
+            sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"⚠️ *Pipeline inestable* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Ver: ${env.BUILD_URL}"}' \
+                ${SLACK_WEBHOOK}
+            """
         }
     }
 }
