@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONAR_TOKEN  = credentials('sonar-token')
+        SONAR_TOKEN  = credentials('sonarcloud-token')
         SLACK_CHANNEL = '#psw-pipeline'
     }
 
@@ -55,19 +55,20 @@ pipeline {
         }
 
         // ─────────────────────────────────────────────
-        // 4. ANÁLISIS SONARQUBE
+        // 4. ANÁLISIS SONARCLOUD
         // ─────────────────────────────────────────────
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('SonarCloud') {
                     sh """
-                        mvn sonar:sonar \
-                            -Dsonar.projectKey=psw-pipeline-base \
-                            -Dsonar.projectName='PSW Pipeline Base' \
+                        mvn verify sonar:sonar \
+                            -Dsonar.projectKey=LuisAngelSanchezRomero_35_PSW_pipeline_base \
+                            -Dsonar.organization=luisangelsanchezromero \
+                            -Dsonar.host.url=https://sonarcloud.io \
                             -Dsonar.token=${SONAR_TOKEN}
                     """
                 }
-                echo '✅ Análisis SonarQube completado'
+                echo '✅ Análisis SonarCloud completado'
             }
         }
 
