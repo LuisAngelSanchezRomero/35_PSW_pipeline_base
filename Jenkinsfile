@@ -79,6 +79,7 @@ pipeline {
         stage('JMeter Load Test') {
             steps {
                 bat """
+                    if not exist "jmeter\\results\\report" mkdir "jmeter\\results\\report"
                     C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
                         -n ^
                         -t jmeter\\psw-pipeline-test.jmx ^
