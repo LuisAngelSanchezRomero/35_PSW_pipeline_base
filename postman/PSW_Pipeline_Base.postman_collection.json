@@ -1,0 +1,320 @@
+{
+  "info": {
+    "name": "PSW Pipeline Base",
+    "_postman_id": "psw-pipeline-base-collection",
+    "description": "Colección de pruebas para el reto S11 | AP5 — Construcción de un Pipeline de Calidad.\nEndpoints: GET /products | POST /login\nServidor: http://localhost:8085",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8085",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. GET /products — Listar productos",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["products"]
+        },
+        "description": "Retorna el listado completo de productos disponibles en el sistema.\nSe espera un arreglo JSON con 5 productos, cada uno con los campos: id, name, price."
+      },
+      "response": [
+        {
+          "name": "200 OK — Lista de productos",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  { \"id\": 1, \"name\": \"Laptop\", \"price\": 2500.0 },\n  { \"id\": 2, \"name\": \"Mouse\", \"price\": 80.0 },\n  { \"id\": 3, \"name\": \"Teclado\", \"price\": 120.0 },\n  { \"id\": 4, \"name\": \"Monitor\", \"price\": 850.0 },\n  { \"id\": 5, \"name\": \"Audífonos\", \"price\": 150.0 }\n]",
+          "originalRequest": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            }
+          }
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Respuesta es un arreglo', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.be.an('array');",
+              "});",
+              "",
+              "pm.test('Retorna 5 productos', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.length).to.eql(5);",
+              "});",
+              "",
+              "pm.test('Cada producto tiene id, name y price', function () {",
+              "    const json = pm.response.json();",
+              "    json.forEach(function(product) {",
+              "        pm.expect(product).to.have.property('id');",
+              "        pm.expect(product).to.have.property('name');",
+              "        pm.expect(product).to.have.property('price');",
+              "    });",
+              "});",
+              "",
+              "pm.test('El primer producto es Laptop con precio 2500', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json[0].name).to.eql('Laptop');",
+              "    pm.expect(json[0].price).to.eql(2500.0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. POST /login — Credenciales correctas",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["login"]
+        },
+        "description": "Autentica al usuario con credenciales válidas.\nSe espera respuesta con success: true y el token ABC123XYZ."
+      },
+      "response": [
+        {
+          "name": "200 OK — Login exitoso",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"success\": true,\n  \"message\": \"Login correcto\",\n  \"token\": \"ABC123XYZ\"\n}",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          }
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('success es true', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Mensaje es Login correcto', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.message).to.eql('Login correcto');",
+              "});",
+              "",
+              "pm.test('Token está presente en la respuesta', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('token');",
+              "    pm.expect(json.token).to.eql('ABC123XYZ');",
+              "});",
+              "",
+              "// Guardar el token como variable de entorno",
+              "const json = pm.response.json();",
+              "if (json.token) {",
+              "    pm.collectionVariables.set('token', json.token);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. POST /login — Credenciales incorrectas",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"usuario\",\n  \"password\": \"wrongpass\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["login"]
+        },
+        "description": "Intenta autenticar con credenciales inválidas.\nSe espera respuesta con success: false y mensaje de error."
+      },
+      "response": [
+        {
+          "name": "200 OK — Credenciales incorrectas",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"success\": false,\n  \"message\": \"Credenciales incorrectas\"\n}",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"usuario\",\n  \"password\": \"wrongpass\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["login"]
+            }
+          }
+        }
+      ],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('success es false', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.success).to.eql(false);",
+              "});",
+              "",
+              "pm.test('Mensaje indica credenciales incorrectas', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.message).to.eql('Credenciales incorrectas');",
+              "});",
+              "",
+              "pm.test('No retorna token', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.not.have.property('token');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. GET /actuator/health — Estado del sistema",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["actuator", "health"]
+        },
+        "description": "Verifica el estado de salud de la aplicación mediante Spring Boot Actuator.\nSe espera status: UP."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Aplicación está UP', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('UP');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
