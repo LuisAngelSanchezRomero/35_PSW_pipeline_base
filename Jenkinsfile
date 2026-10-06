@@ -29,7 +29,7 @@ pipeline {
         // ─────────────────────────────────────────────
         stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                bat 'mvn clean package -DskipTests'
                 echo '✅ Build completado'
             }
         }
@@ -39,18 +39,12 @@ pipeline {
         // ─────────────────────────────────────────────
         stage('Test') {
             steps {
-                sh 'mvn test'
+                bat 'mvn test'
                 echo '✅ Pruebas ejecutadas'
             }
             post {
                 always {
                     junit '**/target/surefire-reports/*.xml'
-                    jacoco(
-                        execPattern: '**/target/jacoco.exec',
-                        classPattern: '**/target/classes',
-                        sourcePattern: '**/src/main/java',
-                        inclusionPattern: '**/*.class'
-                    )
                 }
             }
         }
@@ -61,12 +55,12 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarCloud') {
-                    sh """
-                        mvn verify sonar:sonar \
-                            -Dsonar.projectKey=LuisAngelSanchezRomero_35_PSW_pipeline_base \
-                            -Dsonar.organization=luisangelsanchezromero \
-                            -Dsonar.host.url=https://sonarcloud.io \
-                            -Dsonar.token=${SONAR_TOKEN}
+                    bat """
+                        mvn verify sonar:sonar ^
+                            -Dsonar.projectKey=LuisAngelSanchezRomero_35_PSW_pipeline_base ^
+                            -Dsonar.organization=luisangelsanchezromero ^
+                            -Dsonar.host.url=https://sonarcloud.io ^
+                            -Dsonar.token=%SONAR_TOKEN%
                     """
                 }
                 echo '✅ Análisis SonarCloud completado'
@@ -89,15 +83,13 @@ pipeline {
         // ─────────────────────────────────────────────
         stage('JMeter Load Test') {
             steps {
-                // Asegúrate de tener JMETER_HOME configurado en Jenkins
-                // o usa la ruta absoluta de JMeter en tu servidor
-                sh """
-                    ${JMETER_HOME}/bin/jmeter \
-                        -n \
-                        -t jmeter/psw-pipeline-test.jmx \
-                        -l jmeter/results/results.jtl \
-                        -e \
-                        -o jmeter/results/report
+                bat """
+                    C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat ^
+                        -n ^
+                        -t jmeter\\psw-pipeline-test.jmx ^
+                        -l jmeter\\results\\results.jtl ^
+                        -e ^
+                        -o jmeter\\results\\report
                 """
                 echo '✅ Pruebas de carga completadas'
             }
@@ -115,24 +107,18 @@ pipeline {
     // ─────────────────────────────────────────────────
     post {
         success {
-            sh """
-                curl -X POST -H 'Content-type: application/json' \
-                --data '{"text":"✅ *Pipeline exitoso* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Build: PASSED\\n• Tests: PASSED\\n• SonarCloud: analizado\\n• Ver: ${env.BUILD_URL}"}' \
-                ${SLACK_WEBHOOK}
+            bat """
+                curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\"✅ *Pipeline exitoso* — %JOB_NAME% #%BUILD_NUMBER%\\\\n• Build: PASSED\\\\n• Tests: PASSED\\\\n• SonarCloud: analizado\\\\n• JMeter: ejecutado\\\\n• Ver: %BUILD_URL%\\"}" %SLACK_WEBHOOK%
             """
         }
         failure {
-            sh """
-                curl -X POST -H 'Content-type: application/json' \
-                --data '{"text":"❌ *Pipeline fallido* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Ver: ${env.BUILD_URL}"}' \
-                ${SLACK_WEBHOOK}
+            bat """
+                curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\"❌ *Pipeline fallido* — %JOB_NAME% #%BUILD_NUMBER%\\\\n• Ver: %BUILD_URL%\\"}" %SLACK_WEBHOOK%
             """
         }
         unstable {
-            sh """
-                curl -X POST -H 'Content-type: application/json' \
-                --data '{"text":"⚠️ *Pipeline inestable* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\n• Ver: ${env.BUILD_URL}"}' \
-                ${SLACK_WEBHOOK}
+            bat """
+                curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\"⚠️ *Pipeline inestable* — %JOB_NAME% #%BUILD_NUMBER%\\\\n• Ver: %BUILD_URL%\\"}" %SLACK_WEBHOOK%
             """
         }
     }
